@@ -1,11 +1,6 @@
----
-title: "Peer Assessment 1 - Reproducible Research Course"
-author: "Alexandre Barros (AlexFBar)"
-date: "Sunday, May 17, 2015"
-output:
-  html_document:
-    keep_md: yes
----
+# Peer Assessment 1 - Reproducible Research Course
+Alexandre Barros (AlexFBar)  
+Sunday, May 17, 2015  
 ---
 
 ###1. Description
@@ -27,9 +22,20 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 This step is about load the data into *DataSet* data frame. The *head* function return the first 6 rows of data frame.
 
-```{r}
+
+```r
 DataSet <- read.csv("activity.csv")
 head(DataSet)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
 ```
 
 ---
@@ -39,31 +45,49 @@ head(DataSet)
 
 Use *aggregate* function to sum number of steps per day in *DataSet* data frame.
 
-```{r}
+
+```r
 TotStepsPerDay <- aggregate(steps ~ date, DataSet, sum)
 head(TotStepsPerDay)
+```
+
+```
+##         date steps
+## 1 2012-10-02   126
+## 2 2012-10-03 11352
+## 3 2012-10-04 12116
+## 4 2012-10-05 13294
+## 5 2012-10-06 15420
+## 6 2012-10-07 11015
 ```
 
 **Step2 - Histogram of the total number of steps taken each day:**
 
 To represent the distribution of number of steps per day we can use the histogram plot like below. The function used is *hist* in base plot system.
 
-```{r}
+
+```r
 hist(TotStepsPerDay[,"steps"],col="grey",main="Number of steps taken each day",xlab="Number of steps",ylab="Frequency")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
 **Step3 - Mean and median of the total number of steps taken per day:**
 
 To show the mean and median of number of steps per day we can use *summary* function. This function calculate these numbers automaticaly.
 
-```{r}
+
+```r
 summary(TotStepsPerDay[,"steps"])
 ```
-```{r, echo=FALSE}
-summarySteps<-as.vector(summary(TotStepsPerDay[,"steps"]))
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
 ```
 
-The **mean** is `r as.character(summarySteps[4])` steps and **median** is `r as.character(summarySteps[3])` steps.
+
+The **mean** is 10770 steps and **median** is 10760 steps.
 
 ---
 
@@ -72,37 +96,62 @@ The **mean** is `r as.character(summarySteps[4])` steps and **median** is `r as.
 
 Create a data frame with mean of daily steps per interval of 5 minutes.
 
-```{r}
+
+```r
 AvgDayStepsPerInterval <- aggregate(steps ~ interval, DataSet, mean)
 head(AvgDayStepsPerInterval)
 ```
 
+```
+##   interval     steps
+## 1        0 1.7169811
+## 2        5 0.3396226
+## 3       10 0.1320755
+## 4       15 0.1509434
+## 5       20 0.0754717
+## 6       25 2.0943396
+```
+
 Next we plot the new data frame in linear graphic basic plot.
 
-```{r}
+
+```r
 plot(AvgDayStepsPerInterval$interval,AvgDayStepsPerInterval$steps,type="l",lwd=2,main="The mean of steps taken for each 5 minutes per day (average)",xlab="Minutes (interval of 5min. - average of all 53 days)",ylab="Number of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
 
 **Step2 - Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
 
 The command below answer this question:
 
-```{r}
+
+```r
 AvgDayStepsPerInterval[which.max(AvgDayStepsPerInterval[,"steps"]),]
 ```
 
-The interval of **`r as.character(AvgDayStepsPerInterval[which.max(AvgDayStepsPerInterval[,"steps"]),]$interval)` minutes** contains the maximum number of steps in average of all days.
+```
+##     interval    steps
+## 104      835 206.1698
+```
+
+The interval of **835 minutes** contains the maximum number of steps in average of all days.
 
 ---
 
 ###5. Imputing missing values
 **Step1 - Calculate and report the total number of missing values in the dataset:**
 
-```{r}
+
+```r
 nrow(DataSet[which(is.na(DataSet$steps)),])
 ```
 
-The number of *NA* steps rows in original DataSet are **`r as.character(nrow(DataSet[which(is.na(DataSet$steps)),]))` rows**.
+```
+## [1] 2304
+```
+
+The number of *NA* steps rows in original DataSet are **2304 rows**.
 
 **Step2 - Devise a strategy for filling in all of the missing values in the dataset:**
 
@@ -110,8 +159,21 @@ To choose the method to how we can aggregate *NA* values of original data set, f
 
 This code will return only *NA* steps values groups per day.
 
-```{r}
+
+```r
 aggregate(interval ~ date, DataSet[which(is.na(DataSet$steps)),], FUN = function(x){NROW(x)})
+```
+
+```
+##         date interval
+## 1 2012-10-01      288
+## 2 2012-10-08      288
+## 3 2012-11-01      288
+## 4 2012-11-04      288
+## 5 2012-11-09      288
+## 6 2012-11-10      288
+## 7 2012-11-14      288
+## 8 2012-11-30      288
 ```
 
 The observation is that we have all complete days who have all intervals with *NA* values. So we need to find a value for each day in this list.
@@ -122,7 +184,8 @@ The value can be a mean of each interval of consecutive days. For example, the d
 
 Following the idea above (Step2) we can create the code:
 
-```{r}
+
+```r
 DataSet2<-DataSet
 DataSet2$steps[DataSet2$date=="2012-10-01"]<-DataSet2$steps[DataSet2$date=="2012-10-02"]
 DataSet2$steps[DataSet2$date=="2012-10-08"]<-round((DataSet2$steps[DataSet2$date=="2012-10-07"]+DataSet2$steps[DataSet2$date=="2012-10-09"])/2,0)
@@ -136,8 +199,13 @@ DataSet2$steps[DataSet2$date=="2012-11-30"]<-DataSet2$steps[DataSet2$date=="2012
 
 The validation on **DataSet2**:
 
-```{r}
+
+```r
 nrow(DataSet2[which(is.na(DataSet2$steps)),])
+```
+
+```
+## [1] 0
 ```
 
 There are no *NA* steps on **DataSet2**.
@@ -146,19 +214,26 @@ There are no *NA* steps on **DataSet2**.
 
 The same process like item 3 steps 1, 2 and 3 above for *DataSet2*:
 
-```{r}
+
+```r
 TotStepsPerDay2 <- aggregate(steps ~ date, DataSet2, sum)
 hist(TotStepsPerDay2[,"steps"],col="grey",main="Number of steps taken each day (NA tratement)",xlab="Number of steps",ylab="Frequency")
 ```
 
-```{r}
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+
+```r
 summary(TotStepsPerDay2[,"steps"])
 ```
-```{r, echo=FALSE}
-summarySteps2<-as.vector(summary(TotStepsPerDay2[,"steps"]))
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8334   10570   10370   12880   21190
 ```
 
-The **mean** is `r as.character(summarySteps2[4])` steps and **median** is `r as.character(summarySteps2[3])` steps.
+
+The **mean** is 10370 steps and **median** is 10570 steps.
 
 This result set is different from the first calculation. The interpolaton of a data set can change the results, so you must pay attention at the method who you use to discover the missing values.
 
@@ -167,15 +242,20 @@ This result set is different from the first calculation. The interpolaton of a d
 ###6. Are there differences in activity patterns between weekdays and weekends?
 **Step1 - Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day:**
 
-```{r, echo=FALSE, results="hide"}
-Sys.setlocale("LC_ALL","English")
-```
 
-```{r}
+
+
+```r
 DataSet$week <- weekdays(as.Date(DataSet$date))
 DataSet[DataSet$week=="Sunday"|DataSet$week=="Saturday","week"] <- "weekend"
 DataSet[DataSet$week=="Monday"|DataSet$week=="Tuesday"|DataSet$week=="Wednesday"|DataSet$week=="Thursday"|DataSet$week=="Friday","week"] <- "weekday"
 aggregate(date ~ week, DataSet, FUN = function(x){NROW(x)})
+```
+
+```
+##      week  date
+## 1 weekday 12960
+## 2 weekend  4608
 ```
 
 The new column on original **DataSet** indicate if date is a weekday or weekend.
@@ -184,18 +264,22 @@ The new column on original **DataSet** indicate if date is a weekday or weekend.
 
 Creating 2 new data sets with weekday and weekend data.
 
-```{r}
+
+```r
 AvgDayStepsPerIntervalWeekend <- aggregate(steps ~ interval, DataSet[DataSet$week=="weekend",], mean)
 AvgDayStepsPerIntervalWeekday <- aggregate(steps ~ interval, DataSet[DataSet$week=="weekday",], mean)
 ```
 
 Ploting graphic with comparison:
 
-```{r ,fig.height=8}
+
+```r
 par(mfrow=c(2,1))
 
 plot(AvgDayStepsPerIntervalWeekday$interval,AvgDayStepsPerIntervalWeekday$steps,type="l",lwd=2,main="The mean of steps taken for each 5 minutes per Weekday (average)",xlab="Minutes (interval of 5min. - average of all 53 days)",ylab="Number of steps")
 plot(AvgDayStepsPerIntervalWeekend$interval,AvgDayStepsPerIntervalWeekend$steps,type="l",lwd=2,main="The mean of steps taken for each 5 minutes per Weekend (average)",xlab="Minutes (interval of 5min. - average of all 53 days)",ylab="Number of steps")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-19-1.png) 
 
 ---
